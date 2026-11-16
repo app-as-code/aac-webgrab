@@ -1,0 +1,81 @@
+service:
+  name: aac-webgrab
+  image_repo: lscr.io/linuxserver/webgrabplus
+  image_tag: 5.5.3-ls289
+  description: EPG Downloader
+  icon: download.svg
+  category: Medien & Entertainment
+  stage: prod
+  hostname: epg
+ports:
+- name: web
+  port: 80
+  protocol: TCP
+config:
+  domain_name: example.com
+  generate_hostname: false
+  integrations:
+    homepage:
+      enabled: true
+    autodns:
+      enabled: true
+    traefik:
+      enabled: true
+      cert_resolver: ionos
+      entrypoint: websecure
+  schema_version: 2
+stage_overrides:
+  prod:
+    config:
+      generate_hostname: false
+    service:
+      hostname: webgrab
+volumes:
+  config:
+    description: WebGrab+Plus configuration files
+  data:
+    description: Output directory for generated EPG data
+deployment_strategy:
+  main:
+    enabled: true
+    target_stage: prod
+  dev:
+    enabled: true
+    target_stage: dev
+  test:
+    enabled: false
+    target_stage: test
+  ansible-dev:
+    enabled: true
+    target_stage: dev
+  iac-dev:
+    enabled: true
+    target_stage: dev
+  template-dev:
+    enabled: true
+    target_stage: dev
+deployments:
+  docker_compose:
+    restart_policy: always
+    host_base_path: /export/docker
+    security_opt:
+    - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    volumes:
+    - config:/config
+    - data:/data
+    environment:
+      PUID: '{{ vars.PUID }}'
+      PGID: '{{ vars.PGID }}'
+      TZ: '{{ vars.TZ }}'
+      WEBGRABPLUS_DEBUG: '{{ vars.WEBGRABPLUS_DEBUG }}'
+vars:
+  PUID: '1000'
+  PGID: '1000'
+  TZ: Europe/Berlin
+  WEBGRABPLUS_DEBUG: 'true'
+secrets: {}
